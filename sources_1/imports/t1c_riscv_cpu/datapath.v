@@ -25,7 +25,7 @@ wire [31:0] ImmExt, SrcA, SrcB, WriteData, ALUResult;
 
 
 always @(posedge clk) begin
-    $display("IF Stage: PC = %h, Instr = %h", PC, Instr);
+    $display("IF Stage: PC = %h, Instr = %h, Stall = %b", PC, Instr, Stall);
     $display("DE Stage: InstrD = %h, RegWrite = %b, ALUSrc = %b, ResultSrc = %b, ALUControl = %h, ImmSrc = %b, Jalr = %b, PCSrcE = %b",
              InstrD, RegWrite, ALUSrc, ResultSrc, ALUControl, ImmSrc, Jalr, PCSrcE);
     $display("DE Stage: SrcA = %h, SrcB = %h, ALUResult = %h, Zero = %b, ALUR31 = %b",
@@ -34,8 +34,8 @@ always @(posedge clk) begin
              Result, Mem_WrAddr, Mem_WrData, ReadData);
     $display("DE Stage RegFile Write: wr_addr = %h, wr_data = %h, wr_en = %b",
              InstrE[11:7], Result, RegWriteE);
-    $display("Execute: BranchE = %b, Zero = %b, ALUR31 = %b, funct3E = %b, JumpE = %b, PCSrcE = %b, PCTarget = %h",
-             BranchE, Zero, ALUR31, funct3E, JumpE, PCSrcE, PCTarget);
+    $display("DE_PL_REG: Branch = %b, BranchE = %b", Branch, BranchE);
+    $display("Execute: BranchE = %b, Zero = %b, JumpE = %b, PCSrcE = %b", BranchE, Zero, JumpE, PCSrcE);
 end
 
 //DECODE STAGE WIRES
@@ -66,12 +66,15 @@ adder          pcaddbranch(PCE, ImmExtE, PCTarget);
 
 reset_ff #(32) pcreg(clk, reset, PCJalr, PC);
 
+wire Stall = Branch; // Stall when a branch instruction is in decode
+
 IF_PL_REG IF_reg (
     .clk(clk),
     .reset(reset),
     .Instr(Instr),
     .PC_in(PC),
     .PC4_in(PCPlus4),
+    .Stall(Stall), // Connect Stall signal
     .InstrF(InstrD),
     .PCF(PCD),
     .PC4_out(PC4D)
@@ -82,8 +85,39 @@ IF_PL_REG IF_reg (
 reg_file       rf (clk, RegWrite, InstrD[19:15], InstrD[24:20], RdE, Result, SrcA, WriteData);
 imm_extend     ext (InstrD[31:7], ImmSrc, ImmExt);
 
-DE_PL_REG DE_reg(clk,reset,ResultSrc,ALUSrc,RegWrite,ALUControl,MemWrite,SrcA,WriteData,PCD,InstrD[11:7],ImmExt,InstrD,PC4D,Jump,Branch,RegWriteE,ResultSrcE,MemWriteE,ALUControlE,ALUSrcE,RD1E,RD2E,PCE,RdE,ImmExtE,InstrE,PC4E,JumpE,BranchE);
-
+DE_PL_REG DE_reg(
+    .clk(clk),
+    .reset(reset),
+    .Flush(PCSrcE), // Connect PCSrcE to Flush
+    .ResultSrcD(ResultSrc),
+    .ALUSrcD(ALUSrc),
+    .RegWriteD(RegWrite),
+    .ALUControlD(ALUControl),
+    .MemWriteD(MemWrite),
+    .RD1D(SrcA),
+    .RD2D(WriteData),
+    .PCD(PCD),
+    .RdD(InstrD[11:7]),
+    .ImmExtD(ImmExt),
+    .InstrD(InstrD),
+    .PC4D(PC4D),
+    .Jump(Jump),
+    .Branch(Branch),
+    .RegWriteE(RegWriteE),
+    .ResultSrcE(ResultSrcE),
+    .MemWriteE(MemWriteE),
+    .ALUControlE(ALUControlE),
+    .ALUSrcE(ALUSrcE),
+    .RD1E(RD1E),
+    .RD2E(RD2E),
+    .PCE(PCE),
+    .RdE(RdE),
+    .ImmExtE(ImmExtE),
+    .InstrE(InstrE),
+    .PC4E(PC4E),
+    .JumpE(JumpE),
+    .BranchE(BranchE)
+);
 
 // ALU logic
 mux2 #(32)     srcbmux(RD2E, ImmExtE, ALUSrcE, SrcB);
@@ -91,19 +125,25 @@ alu            alu (RD1E, SrcB, ALUControlE, ALUResult, Zero);
 adder #(32)		auipcadder({InstrE[31:12],12'b0}, PCE, AuiPC);
 mux2 #(32)		LauiPCmux(AuiPC, {InstrE[31:12], 12'b0}, InstrE[5], LauiPC);
 
-wire funct3E = InstrE[14:12];
 
-assign PCSrcE = ((Zero&BranchE)|JumpE);
 
-//assign PCSrcE = ((Zero & BranchE & (funct3E == 3'b000)) | // BEQ
-//                 (~Zero & BranchE & (funct3E == 3'b001)) | // BNE
-//                 (ALUR31 & BranchE & (funct3E == 3'b100)) | // BLT
-//                 (~ALUR31 & BranchE & (funct3E == 3'b101)) | // BGE
-//                 (ALUR31 & BranchE & (funct3E == 3'b110)) | // BLTU
-//                 (~ALUR31 & BranchE & (funct3E == 3'b111)) | // BGEU
-//                 JumpE);
+reg TakeBranchE;
 
-//wire Stall = (InstrD[6:0] == 7'b1100011); // Stall for branch instructions
+always @(*) begin
+    case (InstrE[14:12]) // funct3 in execute stage
+        3'b000: TakeBranchE = Zero;       // beq
+        3'b001: TakeBranchE = !Zero;      // bne
+        3'b100: TakeBranchE = ALUR31;     // blt
+        3'b101: TakeBranchE = !ALUR31;    // bge
+        3'b110: TakeBranchE = ALUR31;     // bltu
+        3'b111: TakeBranchE = !ALUR31;    // bgeu
+        default: TakeBranchE = 0;
+    endcase
+end
+assign PCSrcE = (TakeBranchE & BranchE) | JumpE;
+
+
+
 
 always @(posedge clk) begin
     $display("Execute: BranchE = %b, Zero = %b, JumpE = %b, PCSrcE = %b", BranchE, Zero, JumpE, PCSrcE);

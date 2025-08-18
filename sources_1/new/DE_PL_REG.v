@@ -1,17 +1,17 @@
 module DE_PL_REG(
     input         clk, reset,
+    input         Flush, // New input for flushing
     input [1:0]   ResultSrcD,
     input         ALUSrcD,
     input         RegWriteD,
-     input [3:0]   ALUControlD,
+    input [3:0]   ALUControlD,
     input         MemWriteD,
     input [31:0]  RD1D, RD2D,
     input [31:0]  PCD,
     input [4:0]   RdD,
-    input [31:0]  ImmExtD,InstrD,
+    input [31:0]  ImmExtD, InstrD,
     input [31:0]  PC4D,
-    input         Jump,Branch, 
-
+    input         Jump, Branch,
     output reg         RegWriteE,
     output reg [1:0]   ResultSrcE,
     output reg         MemWriteE,
@@ -20,13 +20,12 @@ module DE_PL_REG(
     output reg [31:0]  RD1E, RD2E,
     output reg [31:0]  PCE,
     output reg [4:0]   RdE,
-    output reg [31:0]  ImmExtE,InstrE,
+    output reg [31:0]  ImmExtE, InstrE,
     output reg [31:0]  PC4E,
-    output reg         JumpE,BranchE
+    output reg         JumpE, BranchE
 );
-
 always @(posedge clk or posedge reset) begin
-    if (reset) begin
+    if (reset || Flush) begin
         RegWriteE    <= 0;
         ResultSrcE   <= 0;
         MemWriteE    <= 0;
@@ -37,7 +36,7 @@ always @(posedge clk or posedge reset) begin
         PCE          <= 0;
         RdE          <= 0;
         ImmExtE      <= 0;
-        InstrE       <= 0;   
+        InstrE       <= 0;
         PC4E         <= 0;
         JumpE        <= 0;
         BranchE      <= 0;
@@ -58,5 +57,4 @@ always @(posedge clk or posedge reset) begin
         BranchE      <= Branch;
     end
 end
-
 endmodule
