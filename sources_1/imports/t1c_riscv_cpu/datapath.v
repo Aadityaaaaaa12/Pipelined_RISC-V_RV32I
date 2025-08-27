@@ -31,9 +31,9 @@ always @(posedge clk) begin
     $display("E Stage: PCE = %h,SrcA = %h,RD2E = %h,ImmExtE = %b, SrcB = %h, ALUResult = %h, Zero = %b, ALUR31 = %b",
              PCE,RD1E,RD2E,ImmExtE, SrcB, ALUResult, Zero, ALUR31);
    
-    $display("PCMW = %h,Mem_WrData = %h, Mem_WrAddr = %h, MemWriteMW = %b ,RegWriteMW = %b,Reg_Addr: = %h" ,PCMW,RD2MW,ALUResultMW,MemWriteMW,RegWriteMW,RdMW);
-     $display("Writeback: Result = %h",Result);
-      $display("MemWrites: MemWrite = %h, MemWriteE = %h",MemWrite,MemWriteE);
+    $display("PCMW = %h,Mem_WrData = %h, Mem_WrAddr = %h, MemWriteMW = %b " ,PCMW,RD2MW,ALUResultMW,MemWriteMW);
+     $display(" Writeback: PCWB = %H, Result = %h, WB_address = %h, RegWriteWB = %b ",PCWB,Result,RdWB,RegWriteWB);
+   
     
 end
 
@@ -66,6 +66,14 @@ wire [31:0]  RD2MW;
 wire [4:0]   RdMW;
 wire [31:0]  PC4MW;
 
+
+//WRITE BACK STAGE WIRES
+wire [1:0]   ResultSrcWB;
+wire [31:0]  ALUResultWB;
+wire [31:0]  ReadDataWB;
+wire [4:0]   RdWB;
+wire [31:0]  PC4WB,LauiPCWB,PCWB;
+
 // next PC logic
 mux2 #(32)     pcmux(PCPlus4, PCTarget, PCSrcE, PCNext);
 mux2 #(32)		jalrmux(PCNext, ALUResult, Jalr, PCJalr);
@@ -90,7 +98,7 @@ IF_PL_REG IF_reg (
 
 wire Flush = PCSrcE | JumpE | Jalr;
 // register file logic
-reg_file       rf (clk, RegWriteMW, InstrD[19:15], InstrD[24:20], RdMW, Result, SrcA, WriteData);
+reg_file       rf (clk, RegWriteWB, InstrD[19:15], InstrD[24:20], RdWB, Result, SrcA, WriteData);
 imm_extend     ext (InstrD[31:7], ImmSrc, ImmExt);
 
 DE_PL_REG DE_reg(
@@ -160,10 +168,10 @@ assign Mem_WrData = RD2MW;
 assign Mem_WrAddr = ALUResultMW;
 
 
-
+WB_PL_REG WB(clk,rst,PCMW,RegWriteMW,ResultSrcMW,ALUResultMW,LauiPCMW,ReadData,RdMW,PC4MW,PCWB,RegWriteWB,ResultSrcWB,ALUResultWB,LauiPCWB,ReadDataWB,RdWB,PC4WB);
 
 //result mux
-mux4 #(32)     resultmux(ALUResultMW, ReadData, PC4MW, LauiPCMW, ResultSrcMW, Result);
+mux4 #(32)     resultmux(ALUResultWB, ReadDataWB, PC4WB, LauiPCWB, ResultSrcWB, Result);
 
 
 
