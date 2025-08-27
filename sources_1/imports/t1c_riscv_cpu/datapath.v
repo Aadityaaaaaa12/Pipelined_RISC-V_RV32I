@@ -15,8 +15,8 @@ module datapath (
     output [31:0] Mem_WrAddr, Mem_WrData,
     input  [31:0] ReadData,
     output [31:0] InstrD,
-    output [31:0] InstrE,
-    output        MemWriteE,
+    output [31:0] InstrMW,
+    output        MemWriteMW,
     output [31:0] Result
 );
 
@@ -26,24 +26,25 @@ wire [31:0] ImmExt, SrcA, SrcB, WriteData, ALUResult;
 
 always @(posedge clk) begin
     $display("IF Stage: PC = %h, Instr = %h, Stall = %b", PC, Instr, Stall);
-    $display("DE Stage: InstrD = %h, RegWrite = %b, ALUSrc = %b, ResultSrc = %b, ALUControl = %h, ImmSrc = %b, Jalr = %b, PCSrcE = %b",
-             InstrD, RegWrite, ALUSrc, ResultSrc, ALUControl, ImmSrc, Jalr, PCSrcE);
-    $display("DE Stage: SrcA = %h, SrcB = %h, ALUResult = %h, Zero = %b, ALUR31 = %b",
-             SrcA, SrcB, ALUResult, Zero, ALUR31);
-    $display("DE Stage Writeback: Result = %h, Mem_WrAddr = %h, Mem_WrData = %h, ReadData = %h",
-             Result, Mem_WrAddr, Mem_WrData, ReadData);
-    $display("DE Stage RegFile Write: wr_addr = %h, wr_data = %h, wr_en = %b",
-             InstrE[11:7], Result, RegWriteE);
-    $display("DE_PL_REG: Branch = %b, BranchE = %b", Branch, BranchE);
-    $display("Execute: BranchE = %b, Zero = %b, JumpE = %b, PCSrcE = %b", BranchE, Zero, JumpE, PCSrcE);
+    $display("DE Stage: PCD = %h, InstrD = %h, flush = %b,RegWrite = %b, ALUSrc = %b, ResultSrc = %b, ALUControl = %b, ImmSrc = %b, Jalr = %b, PCSrcE = %b",
+             PCD,InstrD,Flush, RegWrite, ALUSrc, ResultSrc, ALUControl, ImmSrc, Jalr, PCSrcE);
+    $display("E Stage: PCE = %h,SrcA = %h,RD2E = %h,ImmExtE = %b, SrcB = %h, ALUResult = %h, Zero = %b, ALUR31 = %b",
+             PCE,RD1E,RD2E,ImmExtE, SrcB, ALUResult, Zero, ALUR31);
+   
+    $display("PCMW = %h,Mem_WrData = %h, Mem_WrAddr = %h, MemWriteMW = %b ,RegWriteMW = %b,Reg_Addr: = %h" ,PCMW,RD2MW,ALUResultMW,MemWriteMW,RegWriteMW,RdMW);
+     $display("Writeback: Result = %h",Result);
+      $display("MemWrites: MemWrite = %h, MemWriteE = %h",MemWrite,MemWriteE);
+    
 end
+
+
 
 //DECODE STAGE WIRES
 wire [31:0] PCD,PC4D,ImmExtD,RD1D,RD2D;
 wire [4:0] RdD;
 
 //EXECUTE STAGE WIRES 
-wire [31:0] PCE,PC4E,ImmExtE,RD1E,RD2E,SrcBE,PCTargetE;
+wire [31:0] PCE,PC4E,ImmExtE,RD1E,RD2E,SrcBE,PCTargetE,InstrE;
 wire [4:0] RdE;
 wire RegWriteE;
 wire [1:0]   ResultSrcE;
@@ -54,9 +55,16 @@ wire ALUSrcE;
 wire [2:0] funct3;
 wire [6:0] op;
 wire PCSrcE;
+wire JumpE;
 
-
-
+//memory write stage wires
+wire         RegWriteMW;
+wire [1:0]   ResultSrcMW;
+wire [31:0]  ALUResultMW,PCMW;
+wire [31:0]  LauiPCMW;
+wire [31:0]  RD2MW;
+wire [4:0]   RdMW;
+wire [31:0]  PC4MW;
 
 // next PC logic
 mux2 #(32)     pcmux(PCPlus4, PCTarget, PCSrcE, PCNext);
@@ -80,15 +88,15 @@ IF_PL_REG IF_reg (
     .PC4_out(PC4D)
 );
 
-
+wire Flush = PCSrcE | JumpE | Jalr;
 // register file logic
-reg_file       rf (clk, RegWrite, InstrD[19:15], InstrD[24:20], RdE, Result, SrcA, WriteData);
+reg_file       rf (clk, RegWriteMW, InstrD[19:15], InstrD[24:20], RdMW, Result, SrcA, WriteData);
 imm_extend     ext (InstrD[31:7], ImmSrc, ImmExt);
 
 DE_PL_REG DE_reg(
     .clk(clk),
     .reset(reset),
-    .Flush(PCSrcE), // Connect PCSrcE to Flush
+    .Flush(Flush), // Connect PCSrcE to Flush
     .ResultSrcD(ResultSrc),
     .ALUSrcD(ALUSrc),
     .RegWriteD(RegWrite),
@@ -125,7 +133,7 @@ alu            alu (RD1E, SrcB, ALUControlE, ALUResult, Zero);
 adder #(32)		auipcadder({InstrE[31:12],12'b0}, PCE, AuiPC);
 mux2 #(32)		LauiPCmux(AuiPC, {InstrE[31:12], 12'b0}, InstrE[5], LauiPC);
 
-
+assign ALUR31 = ALUResult[31];
 
 reg TakeBranchE;
 
@@ -144,18 +152,20 @@ assign PCSrcE = (TakeBranchE & BranchE) | JumpE;
 
 
 
+MW_PL_REG MW(clk,reset,PCE,RegWriteE,ResultSrcE,MemWriteE,ALUResult,LauiPC,RD2E,InstrE,RdE,PC4E,PCMW,RegWriteMW,ResultSrcMW,MemWriteMW,ALUResultMW,LauiPCMW,RD2MW,InstrMW,RdMW,PC4MW);
 
-always @(posedge clk) begin
-    $display("Execute: BranchE = %b, Zero = %b, JumpE = %b, PCSrcE = %b", BranchE, Zero, JumpE, PCSrcE);
-end
+
+
+assign Mem_WrData = RD2MW;
+assign Mem_WrAddr = ALUResultMW;
+
+
 
 
 //result mux
-mux4 #(32)     resultmux(ALUResult, ReadData, PC4E, LauiPC, ResultSrcE, Result);
+mux4 #(32)     resultmux(ALUResultMW, ReadData, PC4MW, LauiPCMW, ResultSrcMW, Result);
 
-assign ALUR31 = ALUResult[31];
-assign Mem_WrData = RD2E;
-assign Mem_WrAddr = ALUResult;
+
 
 endmodule
 

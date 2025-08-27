@@ -19,61 +19,61 @@ integer fault_instrs = 0, i = 0, fw = 0, flag = 0;
 
 // Test the RISC-V processor:
 
-localparam ADDI_x0  =   32'h10;
-localparam ADDI     =   32'h18;
-localparam SLLI     =   32'h1C;
-localparam SLTI     =   32'h20;
-localparam SLTIU    =   32'h24;
-localparam XORI     =   32'h28;
-localparam SRLI     =   32'h2C;
-localparam SRAI     =   32'h30;
-localparam ORI      =   32'h34;
-localparam ANDI     =   32'h38;
+localparam ADDI_x0  =   32'h14;
+localparam ADDI     =   32'h1C;
+localparam SLLI     =   32'h20;
+localparam SLTI     =   32'h24;
+localparam SLTIU    =   32'h28;
+localparam XORI     =   32'h2C;
+localparam SRLI     =   32'h30;
+localparam SRAI     =   32'h34;
+localparam ORI      =   32'h38;
+localparam ANDI     =   32'h3C;
 
-localparam ADD      =   32'h3C;
-localparam SUB      =   32'h40;
-localparam SLL      =   32'h44;
-localparam SLT      =   32'h48;
-localparam SLTU     =   32'h4C;
-localparam XOR      =   32'h50;
-localparam SRL      =   32'h54;
-localparam SRA      =   32'h58;
-localparam OR       =   32'h5C;
-localparam AND      =   32'h60;
+localparam ADD      =   32'h40;
+localparam SUB      =   32'h44;
+localparam SLL      =   32'h48;
+localparam SLT      =   32'h4C;
+localparam SLTU     =   32'h50;
+localparam XOR      =   32'h54;
+localparam SRL      =   32'h58;
+localparam SRA      =   32'h5C;
+localparam OR       =   32'h60;
+localparam AND      =   32'h64;
 
-localparam LUI      =   32'h64;
-localparam AUIPC    =   32'h68;
+localparam LUI      =   32'h68;
+localparam AUIPC    =   32'h6C;
 
-localparam SB       =   32'h6C;
-localparam SH       =   32'h70;
-localparam SW       =   32'h74;
+localparam SB       =   32'h70;
+localparam SH       =   32'h74;
+localparam SW       =   32'h78;
 
-localparam LB       =   32'h78;
-localparam LH       =   32'h7C;
-localparam LW       =   32'h80;
-localparam LBU      =   32'h84;
-localparam LHU      =   32'h88;
+localparam LB       =   32'h7C;
+localparam LH       =   32'h80;
+localparam LW       =   32'h84;
+localparam LBU      =   32'h88;
+localparam LHU      =   32'h8C;
 
-localparam BLT_IN   =   32'h98;
-localparam BLT_OUT  =   32'hA4;
+localparam BLT_IN   =   32'h9C;
+localparam BLT_OUT  =   32'hA8;
 
-localparam BGE_IN   =   32'hB4;
-localparam BGE_OUT  =   32'hC0;
+localparam BGE_IN   =   32'hB8;
+localparam BGE_OUT  =   32'hC4;
 
-localparam BLTU_IN  =   32'hD0;
-localparam BLTU_OUT =   32'hDC;
+localparam BLTU_IN  =   32'hD4;
+localparam BLTU_OUT =   32'hE0;
 
-localparam BGEU_IN  =   32'hEC;
-localparam BGEU_OUT =   32'hF8;
+localparam BGEU_IN  =   32'hF0;
+localparam BGEU_OUT =   32'hFC;
 
-localparam BNE_IN   =   32'h108;
-localparam BNE_OUT  =   32'h114;
+localparam BNE_IN   =   32'h10C;
+localparam BNE_OUT  =   32'h118;
 
-localparam BEQ_IN   =   32'h124;
-localparam BEQ_OUT  =   32'h130;
+localparam BEQ_IN   =   32'h128;
+localparam BEQ_OUT  =   32'h134;
 
-localparam JALR     =   32'h13C;
-localparam JAL      =   32'h140;
+localparam JALR     =   32'h140;
+localparam JAL      =   32'h144;
 
 // generate clock to sequence tests
 always begin
