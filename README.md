@@ -1,6 +1,6 @@
-### Pipelined RISC-V RV32IM Processor Development
+## Pipelined RISC-V RV32IM Processor Development
 
-## Repository Structure
+### Repository Structure
 
 ├── sim_1/                 
 │   ├── imports/t1c_riscv_cpu/
