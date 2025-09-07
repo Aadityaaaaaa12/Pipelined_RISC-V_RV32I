@@ -1,5 +1,5 @@
 ## Pipelined RISC-V RV32I Processor Development
-This repository documents the stepwise development of a RISC-V RV32IM processor, covering the design of a single-cycle implementation, hardware deployment, pipeline integration, hazard mitigation strategies, and branch prediction mechanisms.
+This repository documents the stepwise development of a RISC-V RV32I processor, covering the design of a single-cycle implementation, hardware deployment, pipeline integration, hazard mitigation strategies, and branch prediction mechanisms.
 
 ### Single Cycle Processor
 A single-cycle implementation provides the foundation for the RISC-V CPU design. All instruction stages are executed in one clock cycle.
