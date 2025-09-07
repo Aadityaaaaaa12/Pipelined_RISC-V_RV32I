@@ -5,7 +5,6 @@ This repository documents the stepwise development of a RISC-V RV32IM processor,
 A single-cycle implementation provides the foundation for the RISC-V CPU design. All instruction stages are executed in one clock cycle.
 
 ![Single Cycle Processor](Images/SingleCycle.jpg)
-
   - Implements the base RV32I instruction set.
   - Simple design with direct datapath flow.
   - Serves as a reference for verification of advanced implementations.
@@ -18,6 +17,8 @@ The design is synthesized and deployed on FPGA hardware to validate real-time ex
 
 ### Pipelined Processor
 Pipeline architecture enhances throughput by overlapping instruction execution across stages.
+
+![Pipelined Processor](Images/PipeLined.jpg)
   - Five classical stages: IF, ID, EX, MEM, WB.
   - Modularized datapath for easier debugging and extension.
   - Improves instruction throughput compared to single-cycle.
