@@ -3,7 +3,9 @@ This repository documents the stepwise development of a RISC-V RV32IM processor,
 
 ### Single Cycle Processor
 A single-cycle implementation provides the foundation for the RISC-V CPU design. All instruction stages are executed in one clock cycle.
+
 ![Single Cycle Processor](SingleCycle.jpg)
+
   - Implements the base RV32I instruction set.
   - Simple design with direct datapath flow.
   - Serves as a reference for verification of advanced implementations.
