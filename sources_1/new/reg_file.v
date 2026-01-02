@@ -22,12 +22,11 @@ initial begin
     end
 end
 
-// register file write logic (synchronous)
 always @(posedge clk) begin
     if (wr_en) reg_file_arr[wr_addr] <= wr_data;
 end
 
-// register file read logic (combinational) with added hazard protection
+
 assign rd_data1 = (rd_addr1 == wr_addr && wr_en && wr_addr != 0) ? wr_data :
                   (rd_addr1 != 0) ? reg_file_arr[rd_addr1] : 0;
 

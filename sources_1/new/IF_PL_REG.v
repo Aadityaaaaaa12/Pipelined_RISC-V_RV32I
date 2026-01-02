@@ -13,7 +13,7 @@ module IF_PL_REG #(parameter WIDTH = 32)(
             InstrF  <= 0;
             PCF     <= 0;
             PC4_out <= 0;
-        end else if (!Stall) begin // Only update when not stalled
+        end else if (!Stall) begin 
             InstrF  <= Instr;
             PCF     <= PC_in;
             PC4_out <= PC4_in;

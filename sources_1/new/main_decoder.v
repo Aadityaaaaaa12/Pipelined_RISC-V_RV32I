@@ -3,7 +3,7 @@
 module main_decoder (
     input  [6:0] op,
     input  [2:0] funct3,
-    input        Zero, ALUR31,        // Zero: result from SUB, ALUR31: sign bit of result
+    input        Zero, ALUR31,        
     output [1:0] ResultSrc,
     output       MemWrite, Branch, ALUSrc,
     output       RegWrite, Jump, Jalr,

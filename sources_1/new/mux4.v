@@ -1,5 +1,4 @@
 
-// mux4.v - logic for 4-to-1 multiplexer
 
 module mux4 #(parameter WIDTH = 8) (
     input       [WIDTH-1:0] d0, d1, d2, d3,

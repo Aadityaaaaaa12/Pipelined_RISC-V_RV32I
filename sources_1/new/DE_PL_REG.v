@@ -12,8 +12,7 @@ module DE_PL_REG(
     input  [31:0] ImmExtD, InstrD,
     input  [31:0] PC4D,
     input         Jump, Branch,
-    input         jalr,            // <--- NEW input (1 bit)
-
+    input         jalr,          
     output reg         RegWriteE,
     output reg [1:0]   ResultSrcE,
     output reg         MemWriteE,
@@ -25,7 +24,7 @@ module DE_PL_REG(
     output reg [31:0]  ImmExtE, InstrE,
     output reg [31:0]  PC4E,
     output reg         JumpE, BranchE,
-    output reg         jalrE        // <--- NEW output (latched)
+    output reg         jalrE       
 );
 always @(posedge clk or posedge reset) begin
     if (reset || Flush) begin
@@ -45,7 +44,7 @@ always @(posedge clk or posedge reset) begin
         PC4E         <= 32'b0;
         JumpE        <= 1'b0;
         BranchE      <= 1'b0;
-        jalrE        <= 1'b0;   // <--- reset/flush clears it
+        jalrE        <= 1'b0;   
     end else begin
         RegWriteE    <= RegWriteD;
         ResultSrcE   <= ResultSrcD;
@@ -63,7 +62,7 @@ always @(posedge clk or posedge reset) begin
         PC4E         <= PC4D;
         JumpE        <= Jump;
         BranchE      <= Branch;
-        jalrE        <= jalr;   // <--- pass-through
+        jalrE        <= jalr;  
     end
 end
 endmodule
