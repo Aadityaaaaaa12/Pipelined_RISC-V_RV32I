@@ -30,10 +30,7 @@ Pipelining introduces hazards that must be resolved to maintain correctness.
   - Hazard detection unit ensures safe pipeline progression.
 
 ### Branch Prediction
-Branch prediction improves performance by reducing penalties from control hazards.
-  - Predicts branch direction before execution stage.
-  - Implements flush mechanism on misprediction.
-  - Minimizes pipeline stalls and maintains higher throughput.
+Always not taken branch predictor. will be upgraded to a Backward Taken Forward Not Taken predictor(BTFNT) soon
 
 ### Repository Structure   
 ```bash
